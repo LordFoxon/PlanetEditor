@@ -1,19 +1,20 @@
 package planet.detail;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.text.DecimalFormat;
-
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class PlanetController {
 
@@ -43,9 +44,28 @@ public class PlanetController {
 
     @FXML
     private Label fancyPlanetName;
+    
+    private Stage primaryStage;
 
+    public PlanetController() {
+    }
+    
     @FXML
     void selectImage(ActionEvent event) {
+    	FileChooser fileChooser = new FileChooser();
+    	fileChooser.setTitle("Open Resource File");
+    	try {
+    		//TODO need to find way to make it look nicer
+    		//I tried to do it without the FileInputStream and it didn't work
+    		//Check with Pablo to make sure there is no other way
+			Image image = new Image(new FileInputStream(fileChooser.showOpenDialog(new Stage()).getAbsolutePath()));
+			planetImage.setImage(image);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.err.println("ERROR: file not found");
+			e.printStackTrace();
+		}
+    	
     }
 
     @FXML
@@ -156,5 +176,4 @@ public class PlanetController {
     				"\nEnter valid number.");
     	}
     }
-    
 }
