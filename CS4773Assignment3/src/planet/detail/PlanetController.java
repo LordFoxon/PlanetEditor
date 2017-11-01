@@ -90,6 +90,7 @@ public class PlanetController {
     	//TODO initialize planetName to empty i.e ""
     	if (planetName.getText().equals(""))
     		System.out.println("ERROR: planet name field was not set.");
+    	
     }
     
     void setPlanetDiameter(ActionEvent event) {
