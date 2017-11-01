@@ -92,7 +92,7 @@ public class PlanetController {
     		System.out.println("ERROR: planet name field was not set.");
     	
     }
-    
+    @FXML
     void setPlanetDiameter(ActionEvent event) {
     	System.out.println(planetDiameterKM.getText());
     }
