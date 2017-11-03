@@ -3,26 +3,48 @@ package planet.detail;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Scanner;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
 public class PlanetController {
 
+	private static final int MIN_LENGTH = 1;
+	private static final int MAX_LENGTH = 255;
+	
+	private static final double MIN_DIAMETER = 0;
+	private static final double MAX_DIAMETER = 200_000;
+	
+	private static final double MIN_DEGREES = -273.15;
+	private static final double MAX_DEGREES = 500.0;
+	
+	private static final int MIN_MOONS = 0;
+	private static final int MAX_MOONS = 1_000;
     @FXML
     private ImageView planetImage;
 
     @FXML
     private Button selectImageButton;
+    
+    @FXML
+    private Button loadFile;
+    
+    @FXML
+    private Button saveFile;
 
     @FXML
     private TextField planetName;
@@ -45,40 +67,92 @@ public class PlanetController {
     @FXML
     private Label fancyPlanetName;
     
-    private Stage primaryStage;
-
     public PlanetController() {
     }
     
     @FXML
     void selectImage(ActionEvent event) {
     	FileChooser fileChooser = new FileChooser();
-    	fileChooser.setTitle("Open Resource File");
+    	fileChooser.setTitle("Select Planet Image");
     	try {
     		//TODO need to find way to make it look nicer
     		//I tried to do it without the FileInputStream and it didn't work
     		//Check with Pablo to make sure there is no other way
-			Image image = new Image(new FileInputStream(fileChooser.showOpenDialog(new Stage()).getAbsolutePath()));
+    		String path = fileChooser.showOpenDialog(new Stage()).getAbsolutePath();
+			Image image = new Image(new FileInputStream(path));
 			planetImage.setImage(image);
+			planetImage.setId(path);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			System.err.println("ERROR: file not found");
 			e.printStackTrace();
 		}
-    	
     }
 
     @FXML
     void loadPlanet(ActionEvent event) {
+    	FileChooser fileChooser = new FileChooser();
+    	fileChooser.setTitle("Choose Planet File To Load");
+    	try {
+    		Scanner scanner = new Scanner(fileChooser.showOpenDialog(new Stage()));
+
+    		planetImage.setImage(new Image(new FileInputStream(scanner.nextLine())));
+
+    		planetName.setText(scanner.nextLine());
+    		
+    		fancyPlanetName.setText(scanner.nextLine());
+
+    		planetDiameterKM.setText(scanner.nextLine());
+
+    		planetDiameterM.setText(scanner.nextLine());
+
+    		planetMeanSurfaceTempC.setText(scanner.nextLine());
+
+    		planetMeanSurfaceTempF.setText(scanner.nextLine());
+
+    		planetNumberOfMoons.setText(scanner.nextLine());
+            scanner.close();
+		} catch (FileNotFoundException e) {
+			showError(e.getMessage());
+		}
     }
     
     @FXML
     void savePlanet(ActionEvent event) {
+    	//TODO ask Robinson how to save file
+    	FileChooser fileChooser = new FileChooser();
+    	fileChooser.setTitle("Save Planet As File");
+    	//Set extension filter
+        ExtensionFilter extensionFilter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
+        fileChooser.getExtensionFilters().add(extensionFilter);
+        
+        File file = fileChooser.showSaveDialog(new Stage());
+        
+        String planetContents = "";
+        planetContents += planetImage.getId()+"\n";
+
+        planetContents += planetName.getText()+"\n";
+        
+        planetContents += fancyPlanetName.getText()+"\n";
+
+        planetContents += planetDiameterKM.getText()+"\n";
+
+        planetContents += planetDiameterM.getText()+"\n"; ;
+
+        planetContents += planetMeanSurfaceTempC.getText()+"\n";
+        
+        planetContents += planetMeanSurfaceTempF.getText()+"\n";
+        
+        planetContents += planetNumberOfMoons.getText();
+        
+        if(file != null){
+            saveFile(planetContents, file);
+        }
     }
     
     @FXML
     void setPlanetName(ActionEvent event) {
-    	//if required to update as typed, have to implement different solution
+    	//if required to update fancyPlanetName as typed, have to implement different solution
 //    	planetName.getDocument().addDocumentListener(new DocumentListener() { 
 //    	@Override
 //         public void insertUpdate(DocumentEvent de) {
@@ -97,27 +171,25 @@ public class PlanetController {
 //     });
 
     	//TODO will have to change all invalid fields to alert or set boolean that says that validating failed
-    	//check if planet name is within valid range
     	//TODO he suggested the validator should be delegated
     	//TODO builder to make planet object
-    	if (planetName.getText().length() < 1 || planetName.getText().length() > 255){
-    		System.err.println("ERROR: planet name must be between 1 and 255 characters long.");
+    	if (planetName.getText().length() < MIN_LENGTH || planetName.getText().length() > MAX_LENGTH){
+    		showError("Planet name must be between 1 and 255 characters long.");
     		return;
     	}
     	//check for illegal characters
     	if (!planetName.getText().matches("[-a-zA-Z0-9. ]+") ){
-    		System.err.println("ERROR: planet name can only contain alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
+    		showError("Planet name must contain one or more alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
     		return;
     	}
     	//Check for empty string - I think the above two already cover this
     	//TODO initialize planetName to empty i.e ""
     	if (planetName.getText().equals("")){
-    		System.err.println("ERROR: planet name field was not set.");
+    		showError("Planet name field was not set.");
     		return;
     	}
-    	//set fancy name to be updated
-    	fancyPlanetName.setText(planetName.getText());
     	
+    	fancyPlanetName.setText(planetName.getText());
     }
     
     @FXML
@@ -126,17 +198,15 @@ public class PlanetController {
     	try{
     		double diameterInKM = Double.parseDouble(planetDiameterKM.getText());
     		planetDiameterKM.setText(String.format("%,f", diameterInKM));
-    		//check if in valid range
-    		if (diameterInKM < 0 || diameterInKM > 200000){
-    			System.err.println("ERROR: planet diameter must be between 0 and 200,000 km.");
+    		if (diameterInKM < MIN_DIAMETER || diameterInKM > MAX_DIAMETER){
+    			showError("Planet diameter must be between 0 and 200,000 km.");
     			return;
     		}
     		//convert to mi and store
     		planetDiameterM.setText(String.format("%,f", diameterInKM*0.621371));
     	}
     	catch (NumberFormatException e){
-    		System.err.println("Cannot do numerical conversion "+ e.getMessage().toLowerCase()+
-    				"\nEnter valid number.");
+    		conversionError(e.getMessage().toLowerCase());
     	}
     }
     
@@ -145,18 +215,15 @@ public class PlanetController {
     	//TODO default to invalid value
     	try{
     		double temperatureInC = Double.parseDouble(planetMeanSurfaceTempC.getText());
-    		//TODO make constants for values in if
-    		//check if in valid range
-    		if (temperatureInC < -273.15 || temperatureInC > 500.0){
-    			System.err.println("ERROR: planet temperature must be between -273.15\u00b0 and 500.0\u00b0 C.");
+    		if (temperatureInC < MIN_DEGREES || temperatureInC > MAX_DEGREES){
+    			showError("Planet temperature must be between -273.15\u00b0 and 500.0\u00b0 C.");
     			return;
         	}
-    		//convert to mi and store
-    		planetMeanSurfaceTempF.setText(String.format("%,f", (temperatureInC*1.8+32)));
+    		//convert to f and store
+    		planetMeanSurfaceTempF.setText(""+temperatureInC*1.8+32);
     	}
     	catch (NumberFormatException e){
-    		System.err.println("Cannot do numerical conversion "+ e.getMessage().toLowerCase()+
-    				"\nEnter valid number.");
+    		conversionError(e.getMessage().toLowerCase());
     	}
     }
     
@@ -166,14 +233,38 @@ public class PlanetController {
     	try{
     		int moons = Integer.parseInt(planetNumberOfMoons.getText());
     		planetNumberOfMoons.setText(String.format("%,d", moons));
-    		//TODO make constants for values in if
-    		//check if in valid range
-    		if (moons < 0 || moons > 1000)
-    			System.err.println("ERROR: number of moons must be between 0 and 1000.");
+    		if (moons < MIN_MOONS || moons > MAX_MOONS)
+    			showError("Number of moons must be between 0 and 1,000.");
     	}
     	catch (NumberFormatException e){
-    		System.err.println("Cannot do numerical conversion "+ e.getMessage().toLowerCase()+
-    				"\nEnter valid number.");
+    		conversionError(e.getMessage().toLowerCase());
     	}
+    }
+    
+    void showError(String errorMessage){
+    	Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("Invalid Value Entered");
+		System.err.println("ERROR: "+errorMessage);
+		alert.setContentText(errorMessage);
+		alert.showAndWait();
+    }
+    
+    void conversionError(String errorMessage){
+    	errorMessage = "Cannot do numerical conversion "+ errorMessage +".\nEnter valid number.";
+    	if (errorMessage.contains("empty"))
+    		errorMessage = errorMessage.replace("empty","on empty");
+    	showError(errorMessage);
+    }
+    
+    public void saveFile(String content, File file){
+        try {
+            FileWriter fileWriter = null;
+            fileWriter = new FileWriter(file);
+            fileWriter.write(content);
+            fileWriter.close();
+        } catch (IOException e) {
+        	showError(e.getMessage());
+        }
+         
     }
 }
