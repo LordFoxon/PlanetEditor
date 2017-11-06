@@ -68,6 +68,16 @@ public class PlanetController {
     private Label fancyPlanetName;
     
     public PlanetController() {
+    	//TODO maybe make function for checking if file exists and/or error 
+		try {
+			Image image;
+			image = new Image(new FileInputStream("/CS4773Assignment3/images/no_image.png"));
+			planetImage.setImage(image);
+			planetImage.setId("/CS4773Assignment3/images/no_image.png");
+		} catch (FileNotFoundException e) {
+			System.err.println("ERROR: file not found");
+			e.printStackTrace();
+		}
     }
     
     @FXML
@@ -77,7 +87,6 @@ public class PlanetController {
     	try {
     		//TODO need to find way to make it look nicer
     		//I tried to do it without the FileInputStream and it didn't work
-    		//Check with Pablo to make sure there is no other way
     		String path = fileChooser.showOpenDialog(new Stage()).getAbsolutePath();
 			Image image = new Image(new FileInputStream(path));
 			planetImage.setImage(image);
@@ -120,6 +129,8 @@ public class PlanetController {
     @FXML
     void savePlanet(ActionEvent event) {
     	//TODO ask Robinson how to save file
+    	if (validatePlanet() == false)
+    		return;
     	FileChooser fileChooser = new FileChooser();
     	fileChooser.setTitle("Save Planet As File");
     	//Set extension filter
@@ -241,7 +252,7 @@ public class PlanetController {
     	}
     }
     
-    void showError(String errorMessage){
+    public void showError(String errorMessage){
     	Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle("Invalid Value Entered");
 		System.err.println("ERROR: "+errorMessage);
@@ -249,14 +260,14 @@ public class PlanetController {
 		alert.showAndWait();
     }
     
-    void conversionError(String errorMessage){
+    public void conversionError(String errorMessage){
     	errorMessage = "Cannot do numerical conversion "+ errorMessage +".\nEnter valid number.";
     	if (errorMessage.contains("empty"))
     		errorMessage = errorMessage.replace("empty","on empty");
     	showError(errorMessage);
     }
     
-    public void saveFile(String content, File file){
+    private void saveFile(String content, File file){
         try {
             FileWriter fileWriter = null;
             fileWriter = new FileWriter(file);
@@ -265,6 +276,40 @@ public class PlanetController {
         } catch (IOException e) {
         	showError(e.getMessage());
         }
-         
+    }
+    
+    public boolean validatePlanet(){
+    	int moons = Integer.parseInt(planetNumberOfMoons.getText());
+		if (moons < MIN_MOONS || moons > MAX_MOONS){
+			showError("Number of moons must be between 0 and 1,000.");
+			return false;
+		}
+		
+		double temperatureInC = Double.parseDouble(planetMeanSurfaceTempC.getText());
+		if (temperatureInC < MIN_DEGREES || temperatureInC > MAX_DEGREES){
+			showError("Planet temperature must be between -273.15\u00b0 and 500.0\u00b0 C.");
+			return false;
+		}
+		
+		double diameterInKM = Double.parseDouble(planetDiameterKM.getText());
+		if (diameterInKM < MIN_DIAMETER || diameterInKM > MAX_DIAMETER){
+			showError("Planet diameter must be between 0 and 200,000 km.");
+			return false;
+		}
+		
+		if (planetName.getText().length() < MIN_LENGTH || planetName.getText().length() > MAX_LENGTH){
+    		showError("Planet name must be between 1 and 255 characters long.");
+    		return false;
+    	}
+    	if (!planetName.getText().matches("[-a-zA-Z0-9. ]+") ){
+    		showError("Planet name must contain one or more alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
+    		return false;
+    	}
+    	if (planetName.getText().equals("")){
+    		showError("Planet name field was not set.");
+    		return false;
+    	}
+		
+		return true;
     }
 }
