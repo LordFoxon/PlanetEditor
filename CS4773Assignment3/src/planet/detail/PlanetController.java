@@ -6,10 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URL;
+import java.util.ResourceBundle;
 import java.util.Scanner;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,7 +24,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
-public class PlanetController {
+public class PlanetController implements Initializable{
 
 	private static final int MIN_LENGTH = 1;
 	private static final int MAX_LENGTH = 255;
@@ -34,6 +37,13 @@ public class PlanetController {
 	
 	private static final int MIN_MOONS = 0;
 	private static final int MAX_MOONS = 1_000;
+	
+	private String name;
+	private double diameter;
+	private double temperature;
+	private int moons;
+	
+	private FileChooser fileChooser;
     @FXML
     private ImageView planetImage;
 
@@ -68,21 +78,11 @@ public class PlanetController {
     private Label fancyPlanetName;
     
     public PlanetController() {
-    	//TODO maybe make function for checking if file exists and/or error 
-		try {
-			Image image;
-			image = new Image(new FileInputStream("/CS4773Assignment3/images/no_image.png"));
-			planetImage.setImage(image);
-			planetImage.setId("/CS4773Assignment3/images/no_image.png");
-		} catch (FileNotFoundException e) {
-			System.err.println("ERROR: file not found");
-			e.printStackTrace();
-		}
+    	fileChooser = new FileChooser();
     }
     
     @FXML
     void selectImage(ActionEvent event) {
-    	FileChooser fileChooser = new FileChooser();
     	fileChooser.setTitle("Select Planet Image");
     	try {
     		//TODO need to find way to make it look nicer
@@ -92,46 +92,24 @@ public class PlanetController {
 			planetImage.setImage(image);
 			planetImage.setId(path);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			System.err.println("ERROR: file not found");
-			e.printStackTrace();
 		}
     }
 
     @FXML
     void loadPlanet(ActionEvent event) {
-    	FileChooser fileChooser = new FileChooser();
     	fileChooser.setTitle("Choose Planet File To Load");
-    	try {
-    		Scanner scanner = new Scanner(fileChooser.showOpenDialog(new Stage()));
-
-    		planetImage.setImage(new Image(new FileInputStream(scanner.nextLine())));
-
-    		planetName.setText(scanner.nextLine());
-    		
-    		fancyPlanetName.setText(scanner.nextLine());
-
-    		planetDiameterKM.setText(scanner.nextLine());
-
-    		planetDiameterM.setText(scanner.nextLine());
-
-    		planetMeanSurfaceTempC.setText(scanner.nextLine());
-
-    		planetMeanSurfaceTempF.setText(scanner.nextLine());
-
-    		planetNumberOfMoons.setText(scanner.nextLine());
-            scanner.close();
-		} catch (FileNotFoundException e) {
-			showError(e.getMessage());
-		}
+    	//Set extension filter
+        ExtensionFilter extensionFilter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
+        fileChooser.getExtensionFilters().add(extensionFilter);
+    	setPlanetInformationFromFile();
+    	fileChooser.getExtensionFilters().remove(extensionFilter);
     }
     
     @FXML
     void savePlanet(ActionEvent event) {
-    	//TODO ask Robinson how to save file
     	if (validatePlanet() == false)
     		return;
-    	FileChooser fileChooser = new FileChooser();
     	fileChooser.setTitle("Save Planet As File");
     	//Set extension filter
         ExtensionFilter extensionFilter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
@@ -139,82 +117,42 @@ public class PlanetController {
         
         File file = fileChooser.showSaveDialog(new Stage());
         
-        String planetContents = "";
-        planetContents += planetImage.getId()+"\n";
-
-        planetContents += planetName.getText()+"\n";
+        if(file != null)
+            saveFile(addInputToBuffer(), file);
         
-        planetContents += fancyPlanetName.getText()+"\n";
-
-        planetContents += planetDiameterKM.getText()+"\n";
-
-        planetContents += planetDiameterM.getText()+"\n"; ;
-
-        planetContents += planetMeanSurfaceTempC.getText()+"\n";
+        fileChooser.getExtensionFilters().remove(extensionFilter);
         
-        planetContents += planetMeanSurfaceTempF.getText()+"\n";
-        
-        planetContents += planetNumberOfMoons.getText();
-        
-        if(file != null){
-            saveFile(planetContents, file);
-        }
     }
     
     @FXML
     void setPlanetName(ActionEvent event) {
-    	//if required to update fancyPlanetName as typed, have to implement different solution
-//    	planetName.getDocument().addDocumentListener(new DocumentListener() { 
-//    	@Override
-//         public void insertUpdate(DocumentEvent de) {
-//             fancyPlanetName.setText(planetName.getText());
-//         }
-//
-//         @Override
-//         public void removeUpdate(DocumentEvent de) {
-//        	 fancyPlanetName.setText(planetName.getText());
-//         }
-//
-//         @Override
-//         public void changedUpdate(DocumentEvent de) {
-//         //Plain text components don't fire these events.
-//         }
-//     });
-
-    	//TODO will have to change all invalid fields to alert or set boolean that says that validating failed
     	//TODO he suggested the validator should be delegated
     	//TODO builder to make planet object
-    	if (planetName.getText().length() < MIN_LENGTH || planetName.getText().length() > MAX_LENGTH){
+    	name = planetName.getText();
+    	if (name.length() < MIN_LENGTH || name.length() > MAX_LENGTH){
     		showError("Planet name must be between 1 and 255 characters long.");
     		return;
     	}
     	//check for illegal characters
-    	if (!planetName.getText().matches("[-a-zA-Z0-9. ]+") ){
+    	if (!name.matches("[-a-zA-Z0-9. ]+") ){
     		showError("Planet name must contain one or more alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
     		return;
     	}
-    	//Check for empty string - I think the above two already cover this
-    	//TODO initialize planetName to empty i.e ""
-    	if (planetName.getText().equals("")){
-    		showError("Planet name field was not set.");
-    		return;
-    	}
     	
-    	fancyPlanetName.setText(planetName.getText());
+    	fancyPlanetName.setText(name);
     }
     
     @FXML
     void setPlanetDiameter(ActionEvent event) {
-    	//TODO default to invalid value
     	try{
-    		double diameterInKM = Double.parseDouble(planetDiameterKM.getText());
-    		planetDiameterKM.setText(String.format("%,f", diameterInKM));
-    		if (diameterInKM < MIN_DIAMETER || diameterInKM > MAX_DIAMETER){
+    		diameter = Double.parseDouble(planetDiameterKM.getText());
+    		if (diameter < MIN_DIAMETER || diameter > MAX_DIAMETER){
     			showError("Planet diameter must be between 0 and 200,000 km.");
     			return;
     		}
+    		planetDiameterKM.setText(String.format("%,f", diameter));
     		//convert to mi and store
-    		planetDiameterM.setText(String.format("%,f", diameterInKM*0.621371));
+    		planetDiameterM.setText(String.format("%,f", diameter*0.621371));
     	}
     	catch (NumberFormatException e){
     		conversionError(e.getMessage().toLowerCase());
@@ -223,15 +161,14 @@ public class PlanetController {
     
     @FXML
     void setPlanetTemp(ActionEvent event) {
-    	//TODO default to invalid value
     	try{
-    		double temperatureInC = Double.parseDouble(planetMeanSurfaceTempC.getText());
-    		if (temperatureInC < MIN_DEGREES || temperatureInC > MAX_DEGREES){
+    		temperature = Double.parseDouble(planetMeanSurfaceTempC.getText());
+    		if (temperature < MIN_DEGREES || temperature > MAX_DEGREES){
     			showError("Planet temperature must be between -273.15\u00b0 and 500.0\u00b0 C.");
     			return;
         	}
     		//convert to f and store
-    		planetMeanSurfaceTempF.setText(""+temperatureInC*1.8+32);
+    		planetMeanSurfaceTempF.setText(""+(temperature*1.8+32));
     	}
     	catch (NumberFormatException e){
     		conversionError(e.getMessage().toLowerCase());
@@ -240,12 +177,13 @@ public class PlanetController {
     
     @FXML
     void setMoons(ActionEvent event) {
-    	//TODO default to invalid value
     	try{
-    		int moons = Integer.parseInt(planetNumberOfMoons.getText());
-    		planetNumberOfMoons.setText(String.format("%,d", moons));
-    		if (moons < MIN_MOONS || moons > MAX_MOONS)
+    		moons = Integer.parseInt(planetNumberOfMoons.getText());
+    		if (moons < MIN_MOONS || moons > MAX_MOONS){
     			showError("Number of moons must be between 0 and 1,000.");
+    			return;
+    		}
+    		planetNumberOfMoons.setText(String.format("%,d", moons));
     	}
     	catch (NumberFormatException e){
     		conversionError(e.getMessage().toLowerCase());
@@ -279,37 +217,72 @@ public class PlanetController {
     }
     
     public boolean validatePlanet(){
-    	int moons = Integer.parseInt(planetNumberOfMoons.getText());
 		if (moons < MIN_MOONS || moons > MAX_MOONS){
 			showError("Number of moons must be between 0 and 1,000.");
 			return false;
 		}
 		
-		double temperatureInC = Double.parseDouble(planetMeanSurfaceTempC.getText());
-		if (temperatureInC < MIN_DEGREES || temperatureInC > MAX_DEGREES){
+		if (temperature < MIN_DEGREES || temperature > MAX_DEGREES){
 			showError("Planet temperature must be between -273.15\u00b0 and 500.0\u00b0 C.");
 			return false;
 		}
 		
-		double diameterInKM = Double.parseDouble(planetDiameterKM.getText());
-		if (diameterInKM < MIN_DIAMETER || diameterInKM > MAX_DIAMETER){
+		if (diameter < MIN_DIAMETER || diameter > MAX_DIAMETER){
 			showError("Planet diameter must be between 0 and 200,000 km.");
 			return false;
 		}
 		
-		if (planetName.getText().length() < MIN_LENGTH || planetName.getText().length() > MAX_LENGTH){
+		if (name.length() < MIN_LENGTH || name.length() > MAX_LENGTH){
     		showError("Planet name must be between 1 and 255 characters long.");
     		return false;
     	}
-    	if (!planetName.getText().matches("[-a-zA-Z0-9. ]+") ){
+    	if (!name.matches("[-a-zA-Z0-9. ]+") ){
     		showError("Planet name must contain one or more alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
-    		return false;
-    	}
-    	if (planetName.getText().equals("")){
-    		showError("Planet name field was not set.");
     		return false;
     	}
 		
 		return true;
     }
+
+	@Override
+	public void initialize(URL arg0, ResourceBundle arg1) {
+		planetImage.setImage(new Image("images/no_image.png"));
+		planetImage.setId("images/no_image.png");
+		moons = MIN_MOONS-1;
+		name = "";
+		diameter = MIN_DIAMETER-1;
+		temperature = MIN_DEGREES-1;
+	}
+	
+	private String addInputToBuffer(){
+        return  (planetImage.getId()+"\n"+planetName.getText()+"\n"+diameter+"\n"+(diameter*0.621371)+
+        		"\n"+temperature+"\n"+(temperature*1.8+32)+"\n"+moons);
+	}
+	
+	private void setPlanetInformationFromFile(){
+		try {
+    		Scanner scanner = new Scanner(fileChooser.showOpenDialog(new Stage()));
+
+    		planetImage.setId(scanner.nextLine());
+    		planetImage.setImage(new Image(new FileInputStream(planetImage.getId())));
+
+    		planetName.setText((name = scanner.nextLine()));
+    		
+    		fancyPlanetName.setText(name);
+
+    		planetDiameterKM.setText(String.format("%,f",(diameter = scanner.nextDouble())));
+
+    		planetDiameterM.setText(String.format("%,f",scanner.nextDouble()));
+
+    		planetMeanSurfaceTempC.setText(""+(temperature = scanner.nextDouble()));
+
+    		planetMeanSurfaceTempF.setText(""+scanner.nextDouble());
+
+    		planetNumberOfMoons.setText(String.format("%,d", (moons = scanner.nextInt())));
+    		
+            scanner.close();
+		} catch (FileNotFoundException e) {
+			showError(e.getMessage());
+		}
+	}
 }
