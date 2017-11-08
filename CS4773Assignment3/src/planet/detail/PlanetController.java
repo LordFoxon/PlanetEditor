@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.URL;
+import java.util.NoSuchElementException;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
@@ -85,8 +86,6 @@ public class PlanetController implements Initializable{
     void selectImage(ActionEvent event) {
     	fileChooser.setTitle("Select Planet Image");
     	try {
-    		//TODO need to find way to make it look nicer
-    		//I tried to do it without the FileInputStream and it didn't work
     		String path = fileChooser.showOpenDialog(new Stage()).getAbsolutePath();
 			Image image = new Image(new FileInputStream(path));
 			planetImage.setImage(image);
@@ -99,7 +98,6 @@ public class PlanetController implements Initializable{
     @FXML
     void loadPlanet(ActionEvent event) {
     	fileChooser.setTitle("Choose Planet File To Load");
-    	//Set extension filter
         ExtensionFilter extensionFilter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
         fileChooser.getExtensionFilters().add(extensionFilter);
     	setPlanetInformationFromFile();
@@ -133,7 +131,6 @@ public class PlanetController implements Initializable{
     		showError("Planet name must be between 1 and 255 characters long.");
     		return;
     	}
-    	//check for illegal characters
     	if (!name.matches("[-a-zA-Z0-9. ]+") ){
     		showError("Planet name must contain one or more alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
     		return;
@@ -151,7 +148,6 @@ public class PlanetController implements Initializable{
     			return;
     		}
     		planetDiameterKM.setText(String.format("%,f", diameter));
-    		//convert to mi and store
     		planetDiameterM.setText(String.format("%,f", diameter*0.621371));
     	}
     	catch (NumberFormatException e){
@@ -167,7 +163,6 @@ public class PlanetController implements Initializable{
     			showError("Planet temperature must be between -273.15\u00b0 and 500.0\u00b0 C.");
     			return;
         	}
-    		//convert to f and store
     		planetMeanSurfaceTempF.setText(""+(temperature*1.8+32));
     	}
     	catch (NumberFormatException e){
@@ -262,26 +257,19 @@ public class PlanetController implements Initializable{
 	private void setPlanetInformationFromFile(){
 		try {
     		Scanner scanner = new Scanner(fileChooser.showOpenDialog(new Stage()));
-
     		planetImage.setId(scanner.nextLine());
     		planetImage.setImage(new Image(new FileInputStream(planetImage.getId())));
-
     		planetName.setText((name = scanner.nextLine()));
-    		
     		fancyPlanetName.setText(name);
-
     		planetDiameterKM.setText(String.format("%,f",(diameter = scanner.nextDouble())));
-
     		planetDiameterM.setText(String.format("%,f",scanner.nextDouble()));
-
     		planetMeanSurfaceTempC.setText(""+(temperature = scanner.nextDouble()));
-
     		planetMeanSurfaceTempF.setText(""+scanner.nextDouble());
-
     		planetNumberOfMoons.setText(String.format("%,d", (moons = scanner.nextInt())));
-    		
             scanner.close();
 		} catch (FileNotFoundException e) {
+			showError(e.getMessage());
+		} catch (NoSuchElementException e){
 			showError(e.getMessage());
 		}
 	}
