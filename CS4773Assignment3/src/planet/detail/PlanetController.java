@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.URL;
+import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.ResourceBundle;
 import java.util.Scanner;
@@ -86,7 +87,10 @@ public class PlanetController implements Initializable{
     void selectImage(ActionEvent event) {
     	fileChooser.setTitle("Select Planet Image");
     	try {
-    		String path = fileChooser.showOpenDialog(new Stage()).getAbsolutePath();
+    		File file = fileChooser.showOpenDialog(new Stage());
+    		if (file == null)
+    			return;
+    		String path = file.getAbsolutePath();
 			Image image = new Image(new FileInputStream(path));
 			planetImage.setImage(image);
 			planetImage.setId(path);
@@ -187,7 +191,7 @@ public class PlanetController implements Initializable{
     
     public void showError(String errorMessage){
     	Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle("Invalid Value Entered");
+		alert.setTitle("Encountered Invalid Input");
 		System.err.println("ERROR: "+errorMessage);
 		alert.setContentText(errorMessage);
 		alert.showAndWait();
@@ -256,7 +260,10 @@ public class PlanetController implements Initializable{
 	
 	private void setPlanetInformationFromFile(){
 		try {
-    		Scanner scanner = new Scanner(fileChooser.showOpenDialog(new Stage()));
+			File file = fileChooser.showOpenDialog(new Stage());
+    		if (file == null)
+    			return;
+    		Scanner scanner = new Scanner(file.getAbsolutePath());
     		planetImage.setId(scanner.nextLine());
     		planetImage.setImage(new Image(new FileInputStream(planetImage.getId())));
     		planetName.setText((name = scanner.nextLine()));
@@ -269,8 +276,11 @@ public class PlanetController implements Initializable{
             scanner.close();
 		} catch (FileNotFoundException e) {
 			showError(e.getMessage());
-		} catch (NoSuchElementException e){
-			showError(e.getMessage());
+		} catch (InputMismatchException e){
+			showError("Could not convert value");
+		}
+		catch (NoSuchElementException  e) {
+			showError("Not enough input lines.");
 		}
 	}
 }
