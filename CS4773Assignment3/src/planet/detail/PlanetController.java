@@ -17,6 +17,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
@@ -104,7 +105,12 @@ public class PlanetController implements Initializable{
     	fileChooser.setTitle("Choose Planet File To Load");
         ExtensionFilter extensionFilter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
         fileChooser.getExtensionFilters().add(extensionFilter);
-    	setPlanetInformationFromFile();
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Overwriting Input");
+        alert.setContentText("Are you sure you want to load a new file and overwrite current fields?");
+        alert.showAndWait();
+        if (alert.getResult() == ButtonType.OK)
+        	setPlanetInformationFromFile();
     	fileChooser.getExtensionFilters().remove(extensionFilter);
     }
     
@@ -113,7 +119,6 @@ public class PlanetController implements Initializable{
     	if (validatePlanet() == false)
     		return;
     	fileChooser.setTitle("Save Planet As File");
-    	//Set extension filter
         ExtensionFilter extensionFilter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
         fileChooser.getExtensionFilters().add(extensionFilter);
         
@@ -259,28 +264,43 @@ public class PlanetController implements Initializable{
 	}
 	
 	private void setPlanetInformationFromFile(){
+		double meters = -1, fahrenheit = -1;
 		try {
 			File file = fileChooser.showOpenDialog(new Stage());
     		if (file == null)
     			return;
     		Scanner scanner = new Scanner(file.getAbsolutePath());
     		planetImage.setId(scanner.nextLine());
-    		planetImage.setImage(new Image(new FileInputStream(planetImage.getId())));
-    		planetName.setText((name = scanner.nextLine()));
-    		fancyPlanetName.setText(name);
-    		planetDiameterKM.setText(String.format("%,f",(diameter = scanner.nextDouble())));
-    		planetDiameterM.setText(String.format("%,f",scanner.nextDouble()));
-    		planetMeanSurfaceTempC.setText(""+(temperature = scanner.nextDouble()));
-    		planetMeanSurfaceTempF.setText(""+scanner.nextDouble());
-    		planetNumberOfMoons.setText(String.format("%,d", (moons = scanner.nextInt())));
+    		name = scanner.nextLine();
+    		diameter = scanner.nextDouble();
+    		meters = scanner.nextDouble();
+    		temperature = scanner.nextDouble();
+    		fahrenheit = scanner.nextDouble();
+    		moons = scanner.nextInt();
             scanner.close();
-		} catch (FileNotFoundException e) {
-			showError(e.getMessage());
 		} catch (InputMismatchException e){
-			showError("Could not convert value");
+			showError("Could not convert value to number");
+			return;
 		}
 		catch (NoSuchElementException  e) {
-			showError("Not enough input lines.");
+			showError("Planet file is not formatted correctly.");
+			return;
 		}
+		
+		try {
+			planetImage.setImage(new Image(new FileInputStream(planetImage.getId())));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			showError("File not found.");
+			return;
+		}
+		
+		planetName.setText(name);
+		fancyPlanetName.setText(name);
+		planetDiameterKM.setText(String.format("%,f", diameter));
+		planetDiameterM.setText(String.format("%,f", meters)); 
+		planetMeanSurfaceTempC.setText(""+temperature);
+		planetMeanSurfaceTempF.setText(""+fahrenheit);
+		planetNumberOfMoons.setText(String.format("%,d", moons));
 	}
 }
