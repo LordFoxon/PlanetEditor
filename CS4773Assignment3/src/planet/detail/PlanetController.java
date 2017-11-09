@@ -26,6 +26,8 @@ import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+import models.Planet;
+
 
 public class PlanetController implements Initializable{
 
@@ -41,6 +43,7 @@ public class PlanetController implements Initializable{
 	private static final int MIN_MOONS = 0;
 	private static final int MAX_MOONS = 1_000;
 	
+	private Planet planet;
 	private String name;
 	private double diameter;
 	private double temperature;
@@ -81,7 +84,9 @@ public class PlanetController implements Initializable{
     private Label fancyPlanetName;
     
     public PlanetController() {
-    	fileChooser = new FileChooser();
+    		fileChooser = new FileChooser();
+		this.planet = new Planet();
+
     }
     
     @FXML
@@ -135,17 +140,8 @@ public class PlanetController implements Initializable{
     void setPlanetName(ActionEvent event) {
     	//TODO he suggested the validator should be delegated
     	//TODO builder to make planet object
-    	name = planetName.getText();
-    	if (name.length() < MIN_LENGTH || name.length() > MAX_LENGTH){
-    		showError("Planet name must be between 1 and 255 characters long.");
-    		return;
-    	}
-    	if (!name.matches("[-a-zA-Z0-9. ]+") ){
-    		showError("Planet name must contain one or more alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
-    		return;
-    	}
-    	
-    	fancyPlanetName.setText(name);
+    		planet.setPlanetName(planetName.getText());
+		fancyPlanetName.setText(planet.getPlanetName());
     }
     
     @FXML
