@@ -83,6 +83,7 @@ public class Planet {
 			return false ;
 		}
 		return true;
+		
 	}
 	
 	boolean validatePlanetDiameter() {
