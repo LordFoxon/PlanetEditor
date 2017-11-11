@@ -1,108 +1,117 @@
 package models;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 
 public class Planet {
-	private static final int MIN_LENGTH = 1;
-	private static final int MAX_LENGTH = 255;
-	
-	private static final double MIN_DIAMETER = 0;
-	private static final double MAX_DIAMETER = 200_000;
-	
-	private static final double MIN_DEGREES = -273.15;
-	private static final double MAX_DEGREES = 500.0;
-	
-	private static final int MIN_MOONS = 0;
-	private static final int MAX_MOONS = 1_000;
 	
 	private String name;
-	private double diameter;
-	private double temp;
+	private String imagePath;
+	private double diameterInKm;
+	private double diameterInM;
+	private double temperatureInCelsius;
+	private double temperatureInFahrenheit;
 	private int numberOfMoons;
 	private Image image;
 	
-	void Planet(){
-		String name;
-		double diameter;
-		double temp;
-		int numberOfMoons;
-		Image image;
-	}
-	
-	public void setPlanetName(String name){
-		if (validatePlanetName(name)) {
-			this.name = name;
-		}
-	}
-	
-	public String getPlanetName() {
-		return this.name;
-	}
-	
-	public void setPlanetDiameter(double diameter){
-		this.diameter = diameter;
-	}
-	
-	public double getPlanetDiameter() {
-		return this.diameter;
-	}
-	
-	public void setPlanetTemp(double temp){
-		this.temp = temp;
-	}
-	
-	public double getPlanetTemp() {
-		return this.temp;
-	}
-	
-	public void setNumberOfMoons(int numberOfMoons){
-		this.numberOfMoons = numberOfMoons;
-	}
-	
-	public int getNumberOfMoons() {
-		return this.numberOfMoons;
+	public Planet(PlanetBuilder planetBuilder) {
+		this.imagePath = planetBuilder.imagePath;
+		this.name = planetBuilder.name;
+		this.diameterInKm = planetBuilder.diameterInKm;
+		this.diameterInM = planetBuilder.diameterInM;
+		this.temperatureInCelsius = planetBuilder.temperature;
+		this.temperatureInFahrenheit = planetBuilder.temperatureInFahrenheit;
+		this.numberOfMoons = planetBuilder.moons;
+		this.image = planetBuilder.image;
 	}
 	
 	public void setPlanetImage(Image image) {
 		this.image = image;
 	}
 	
+	public String getImagePath() {
+		return this.imagePath;
+	}
+	
+	public String getPlanetName() {
+		return this.name;
+	}
+	
+	public double getPlanetDiameterInKm() {
+		return this.diameterInKm;
+	}
+	
+	public double getPlanetDiameterInM() {
+		return this.diameterInM;
+	}
+	
+	public double getPlanetTempInC() {
+		return this.temperatureInCelsius;
+	}
+	
+	public double getPlanetTempInF() {
+		return this.temperatureInFahrenheit;
+	}
+	
+	public int getNumberOfMoons() {
+		return this.numberOfMoons;
+	}
+	
 	public Image getPlanetImage() {
 		return this.image;
 	}
 	
-	boolean validatePlanetName(String name) {
-		if (name.length() < MIN_LENGTH || name.length() > MAX_LENGTH){
-			showError("Planet name must be between 1 and 255 characters long.");
-			return false;
-		}
-		if (!name.matches("[-a-zA-Z0-9. ]+") ){
-			showError("Planet name must contain one or more alphanumeric and/or punctation characters (\".\", \"-\", or \" \").");
-			return false ;
-		}
-		return true;
+	public void savePlanet() {
+		PlanetGateway.savePlanet(this);
+	}
+	
+	public static class PlanetBuilder{
 		
-	}
-	
-	boolean validatePlanetDiameter() {
-		return false;
-	}
-	
-	boolean validatePlanetTemp() {
-		return false;
-	}
-	
-	boolean validateNumberOfMoons() {
-		return false;
-	}
+		private String name;
+		private String imagePath;
+		private double diameterInKm;
+		private double diameterInM;
+		private double temperature;
+		private double temperatureInFahrenheit;
+		private int moons;
+		private Image image;
+		
+		public PlanetBuilder(String name) {
+			if (Validators.validatePlanetName(name)) {
+				this.name = name;
+			}
+		}
+		
+		public PlanetBuilder imagePath(String imagePath) {
+			System.out.println(imagePath);
+			this.imagePath = imagePath;
+			return this;
+		}
+		
+		public PlanetBuilder diameter(double diameterInKm) {
+			if(Validators.validatePlanetDiameter(diameterInKm)) {
+				this.diameterInKm = diameterInKm;
+				this.diameterInM = (diameterInKm * 0.621371);
+			}
+			return this;
+		}
 
-	public void showError(String errorMessage){
-    	Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle("Invalid Value Entered");
-		System.err.println("ERROR: "+errorMessage);
-		alert.setContentText(errorMessage);
-		alert.showAndWait();
-    }
+		public PlanetBuilder temperature(double temperature) {
+			if (Validators.validatePlanetTemp(temperature)) {
+				this.temperature = temperature;
+				this.temperatureInFahrenheit = temperature * 1.8 + 32;
+			}
+			return this;
+		}
+
+		public PlanetBuilder NumberOfMoons(int moons) {
+			if(Validators.validateNumberOfMoons(moons)) {
+				this.moons = moons;
+			}
+			return this;
+		}
+
+		public Planet build() {
+			return new Planet(this);
+		}
+	}
 }
