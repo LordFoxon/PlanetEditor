@@ -31,9 +31,10 @@ public class Validators {
 		return true;
 	}
 	
-	static boolean validatePlanetDiameter(double diameter) {
+	public static boolean validatePlanetDiameter(double diameter) {
 		try {
 			if (diameter < MIN_DIAMETER || diameter > MAX_DIAMETER) {
+				System.out.println("WRONG");
 				Error.showError("Planet diameter must be between 0 and 200,000 km.");
 				return false;
 			}

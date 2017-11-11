@@ -73,10 +73,6 @@ public class PlanetController implements Initializable {
 		}
 	}
 	void handleUserInput(ActionEvent event) throws Exception {
-		if(event.getSource() == planetName){
-			name = planetName.getText();
-			fancyPlanetName.setText(name);
-		}
 		if (event.getSource() == planetDiameterKM) {
 			diameter = Double.parseDouble(planetDiameterKM.getText());
 			planetDiameterKM.setText(String.format("%,f", diameter));
@@ -110,7 +106,11 @@ public class PlanetController implements Initializable {
 	@FXML
 	void savePlanet(ActionEvent event) {
 		System.out.println(planetImage.getId());
-		planet = new Planet.PlanetBuilder(name).imagePath(planetImage.getId()).diameter(diameter).temperature(temperature).NumberOfMoons(moons).build();
+		planet = new Planet.PlanetBuilder(name)
+				.imagePath(planetImage.getId())
+				.diameter(diameter)
+				.temperature(temperature)
+				.NumberOfMoons(moons).build();
 		planet.savePlanet();
 	}
 
@@ -125,8 +125,8 @@ public class PlanetController implements Initializable {
 		try {
 			planetImage.setImage(new Image(new FileInputStream(planet.getImagePath())));
 		} catch (FileNotFoundException e) {
-			Error.showError("File not found.");
-			return;
+			planetImage.setImage(new Image("images/no_image.png"));
+			Error.showError("Image File not found.");
 		}
 		planetName.setText(planet.getPlanetName());
 		fancyPlanetName.setText(planet.getPlanetName());

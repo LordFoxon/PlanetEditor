@@ -23,7 +23,8 @@ public class PlanetGateway {
 		PlanetGateway.planet = planet;
 		FileChooser fileChooser = new FileChooser();
 
-		if (!Validators.validatePlanet(planet)) {
+		if (Validators.validatePlanet(planet) == false) {
+			System.out.println("Something is wrong with planet");
 			return;
 		}
 		fileChooser.setTitle("Save Planet As File");

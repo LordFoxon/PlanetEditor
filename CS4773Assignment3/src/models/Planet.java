@@ -68,11 +68,11 @@ public class Planet {
 		
 		private String name;
 		private String imagePath;
-		private double diameterInKm;
+		private double diameterInKm = -1;
 		private double diameterInM;
-		private double temperature;
+		private double temperature = -10000;
 		private double temperatureInFahrenheit;
-		private int moons;
+		private int moons = -1;
 		private Image image;
 		
 		public PlanetBuilder(String name) {
@@ -91,7 +91,7 @@ public class Planet {
 			if(Validators.validatePlanetDiameter(diameterInKm)) {
 				this.diameterInKm = diameterInKm;
 				this.diameterInM = (diameterInKm * 0.621371);
-			}
+			} 
 			return this;
 		}
 
