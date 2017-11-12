@@ -74,6 +74,7 @@ public class PlanetTest{
 	@Test
 	public void testPlanetSaving() throws IOException {
 			File newFile = new File("tests/SavedFile");
+			newFile.deleteOnExit();
 			File oldFile = new File("tests/SaveTest");
 			Planet planetToSave = PlanetGateway.loadedPlanet = new Planet.PlanetBuilder("Namek")
 					.imagePath("images/no_image.png")
