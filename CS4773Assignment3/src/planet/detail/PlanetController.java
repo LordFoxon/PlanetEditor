@@ -105,7 +105,6 @@ public class PlanetController implements Initializable {
 
 	@FXML
 	void savePlanet(ActionEvent event) {
-		System.out.println(planetImage.getId());
 		planet = new Planet.PlanetBuilder(name)
 				.imagePath(planetImage.getId())
 				.diameter(diameter)

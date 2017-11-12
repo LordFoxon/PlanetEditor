@@ -82,7 +82,6 @@ public class Planet {
 		}
 		
 		public PlanetBuilder imagePath(String imagePath) {
-			System.out.println(imagePath);
 			this.imagePath = imagePath;
 			return this;
 		}

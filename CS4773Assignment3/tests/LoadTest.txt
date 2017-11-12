@@ -1,0 +1,5 @@
+images/no_image.png
+Vegeta
+2000.0
+10.0
+15

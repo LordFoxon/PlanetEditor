@@ -18,7 +18,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class PlanetGateway {
 	static Planet planet;
-	static Planet loadedPlanet;
+	public static Planet loadedPlanet;
 	public static void savePlanet(Planet planet) {
 		PlanetGateway.planet = planet;
 		FileChooser fileChooser = new FileChooser();
@@ -34,12 +34,12 @@ public class PlanetGateway {
 		File file = fileChooser.showSaveDialog(new Stage());
 
 		if (file != null)
-			saveFile(addInputToBuffer(), file);
+			saveFile(addInputToBuffer(planet), file);
 
 		fileChooser.getExtensionFilters().remove(extensionFilter);
 	}
 	
-	private static String addInputToBuffer() {
+	public static String addInputToBuffer(Planet planet) {
 		return (planet.getImagePath() + "\n" 
 				+ planet.getPlanetName() + "\n" 
 				+ planet.getPlanetDiameterInKm() + "\n"  
@@ -47,7 +47,7 @@ public class PlanetGateway {
 				+ planet.getNumberOfMoons());
 	}
 	
-	private static void saveFile(String content, File file) {
+	public static void saveFile(String content, File file) {
 		try {
 			FileWriter fileWriter = null;
 			fileWriter = new FileWriter(file);
@@ -79,13 +79,12 @@ public class PlanetGateway {
 		return PlanetGateway.loadedPlanet;
 	}
 	
-	private static void loadPlanetFromFile(File file) throws FileNotFoundException {
+	public static void loadPlanetFromFile(File file) throws FileNotFoundException {
 		String planetImagePath;
 		String name;
 		double diameter;
 		double temperature;
 		int moons;
-		
 		try {
 			Scanner scanner = new Scanner(file);
 			planetImagePath = scanner.nextLine();
@@ -107,5 +106,10 @@ public class PlanetGateway {
 				.temperature(temperature)
 				.NumberOfMoons(moons)
 				.build();
+	}
+	public static Planet returnPlanetForTest(File file) throws FileNotFoundException {
+		loadPlanetFromFile(file);
+		return PlanetGateway.loadedPlanet;
+		
 	}
 }

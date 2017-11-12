@@ -16,7 +16,7 @@ public class Validators {
 	private static final int MIN_MOONS = 0;
 	private static final int MAX_MOONS = 1_000;
 	
-	static boolean validatePlanetName(String name) {
+	public static boolean validatePlanetName(String name) {
 		if(name == null) {
 			return false;
 		}
@@ -34,7 +34,6 @@ public class Validators {
 	public static boolean validatePlanetDiameter(double diameter) {
 		try {
 			if (diameter < MIN_DIAMETER || diameter > MAX_DIAMETER) {
-				System.out.println("WRONG");
 				Error.showError("Planet diameter must be between 0 and 200,000 km.");
 				return false;
 			}
@@ -46,7 +45,7 @@ public class Validators {
 		return true;
 	}
 	
-	static boolean validatePlanetTemp(double temperature) {
+	public static boolean validatePlanetTemp(double temperature) {
 		if (temperature < MIN_DEGREES || temperature > MAX_DEGREES) {
 			Error.showError("Planet temperature must be between -273.15\u00b0 and 500.0\u00b0 C.");
 			return false;
@@ -54,7 +53,7 @@ public class Validators {
 		return true;
 	}
 	
-	static boolean validateNumberOfMoons(int numberOfMoons) {
+	public static boolean validateNumberOfMoons(int numberOfMoons) {
 		if (numberOfMoons < MIN_MOONS || numberOfMoons > MAX_MOONS) {
 			Error.showError("Number of moons must be between 0 and 1000.");
 			return false;
